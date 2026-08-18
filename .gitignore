@@ -11,10 +11,11 @@ node_modules
 AGENTS.md
 skills-lock.json
 .agents
-.docs
 dist
 dist-ssr
 *.local
+.venv
+.docs
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +27,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
