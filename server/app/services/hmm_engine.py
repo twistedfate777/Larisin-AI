@@ -49,8 +49,6 @@ class HMMEngine:
             logger.info("All HMM models loaded successfully.")
             
     def get_model(self, archetype_key: str):
-        # Convert human readable label back to key if necessary, or just use key
-        # We expect the key to match our archetypes array
         if archetype_key not in self.models:
             raise ValueError(f"HMM model for {archetype_key} not available.")
         return self.models[archetype_key]
@@ -61,7 +59,6 @@ class HMMEngine:
         recent_observations: list of ints [0, 1, 2] representing Low, Med, High
         """
         if archetype_key not in self.models:
-            # Fallback mock response if model isn't trained yet
             return {
                 "current_state": "Peak",
                 "current_state_prob": [0.1, 0.8, 0.1],
@@ -73,11 +70,8 @@ class HMMEngine:
         obs_array = np.array(recent_observations).reshape(-1, 1)
         
         try:
-            # logprob, state_sequence
             logprob, states = model.decode(obs_array, algorithm="viterbi")
             
-            # predict_proba returns posterior probabilities for each time step
-            # We want the posterior of the LAST time step
             posterior_probs = model.predict_proba(obs_array)
             last_prob = posterior_probs[-1]
             
@@ -101,10 +95,8 @@ class HMMEngine:
         pi = np.array(current_state_prob)
         A = np.array(transmat)
         
-        # Matrix power A^H
         A_H = np.linalg.matrix_power(A, horizon_weeks)
         
-        # Forecasted distribution
         pi_H = np.dot(pi, A_H)
         
         return {
@@ -113,5 +105,4 @@ class HMMEngine:
             "declining": round(pi_H[2], 4)
         }
 
-# Singleton instance
 hmm_engine = HMMEngine()

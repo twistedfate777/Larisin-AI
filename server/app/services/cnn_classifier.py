@@ -23,7 +23,7 @@ class CNNClassifier:
         return cls._instance
 
     def _initialize(self):
-        self.device = torch.device("cpu") # MVP is CPU bound as per spec
+        self.device = torch.device("cpu")
         self.model = self._build_model()
         self.is_loaded = False
         
@@ -36,7 +36,6 @@ class CNNClassifier:
         
         if os.path.exists(settings.CNN_MODEL_PATH):
             try:
-                # Load weights
                 self.model.load_state_dict(torch.load(settings.CNN_MODEL_PATH, map_location=self.device, weights_only=True))
                 self.model.to(self.device)
                 self.model.eval()
@@ -48,7 +47,6 @@ class CNNClassifier:
             logger.warning(f"CNN Model file not found at {settings.CNN_MODEL_PATH}. Inference will fail or return mock data.")
 
     def _build_model(self):
-        # We must build the exact same architecture as train_cnn.py
         model = models.mobilenet_v2(weights=None)
         num_ftrs = model.classifier[1].in_features
         model.classifier[1] = nn.Sequential(
@@ -61,7 +59,6 @@ class CNNClassifier:
 
     def classify_image(self, image_bytes: bytes) -> dict:
         if not self.is_loaded:
-            # Fallback for when model isn't trained yet during development
             return {
                 "label": "Generic",
                 "probabilities": {
@@ -83,7 +80,6 @@ class CNNClassifier:
             pred_idx = probabilities.index(max(probabilities))
             predicted_label = CLASS_NAMES[pred_idx]
             
-            # Map for human readable label based on spec
             label_mapping = {
                 "modest_modern": "Modest-Modern Fusion",
                 "heritage_eco": "Heritage Eco",
@@ -104,5 +100,4 @@ class CNNClassifier:
             logger.error(f"Error during image classification: {e}")
             raise
 
-# Create a singleton instance to be imported by the API router
 cnn_classifier = CNNClassifier()
