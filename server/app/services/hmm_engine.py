@@ -54,10 +54,6 @@ class HMMEngine:
         return self.models[archetype_key]
 
     def decode_trend(self, archetype_key: str, recent_observations: list) -> dict:
-        """
-        Uses Viterbi algorithm to decode the current state.
-        recent_observations: list of ints [0, 1, 2] representing Low, Med, High
-        """
         if archetype_key not in self.models:
             return {
                 "current_state": "Peak",
@@ -89,9 +85,6 @@ class HMMEngine:
             raise
 
     def forecast_trend(self, current_state_prob: list, transmat: list, horizon_weeks: int = 4) -> dict:
-        """
-        Forecasts future state probabilities: pi_H = pi_current * A^H
-        """
         pi = np.array(current_state_prob)
         A = np.array(transmat)
         
