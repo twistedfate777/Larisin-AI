@@ -40,7 +40,7 @@ def train_and_save_hmm():
         
         X = df['observation'].values.reshape(-1, 1)
         
-        model = hmm.MultinomialHMM(n_components=3, n_iter=100, random_state=42)
+        model = hmm.CategoricalHMM(n_components=3, n_iter=100, random_state=42)
         model.fit(X)
         
         expected_values = np.zeros(3)
