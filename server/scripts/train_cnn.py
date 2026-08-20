@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from app.core.config import settings
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 4
+NUM_CLASSES = 3
 
 def build_model():
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
@@ -55,6 +55,6 @@ def train_model(data_dir: str, num_epochs: int = 5):
     torch.save(model.state_dict(), settings.CNN_MODEL_PATH)
 
 if __name__ == "__main__":
-    DATASET_DIR = "data/raw/deepfashion_subset/" 
+    DATASET_DIR = "data/raw/fashionpedia_subset/" 
     if os.path.exists(DATASET_DIR):
         train_model(DATASET_DIR)

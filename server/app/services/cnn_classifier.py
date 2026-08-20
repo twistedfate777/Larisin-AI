@@ -5,8 +5,8 @@ from torchvision import models
 from PIL import Image
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 4
-CLASS_NAMES = ["modest_modern", "heritage_eco", "y2k_revival", "generic"]
+NUM_CLASSES = 3
+CLASS_NAMES = ["generic", "modest_modern_fusion", "y2k_revival"]
 
 def build_cnn_model():
     model = models.mobilenet_v2(weights=None)
@@ -34,18 +34,16 @@ def classify_image(image_bytes: bytes, model: nn.Module) -> dict:
     predicted_label = CLASS_NAMES[pred_idx]
     
     label_mapping = {
-        "modest_modern": "Modest-Modern Fusion",
-        "heritage_eco": "Heritage Eco",
-        "y2k_revival": "Y2K Retro Revival",
-        "generic": "Generic"
+        "generic": "Generic",
+        "modest_modern_fusion": "Modest-Modern Fusion",
+        "y2k_revival": "Y2K Retro Revival"
     }
     
     return {
         "label": label_mapping[predicted_label],
         "probabilities": {
-            "modest_modern": round(probabilities[0], 4),
-            "heritage_eco": round(probabilities[1], 4),
-            "y2k_revival": round(probabilities[2], 4),
-            "generic": round(probabilities[3], 4)
+            "generic": round(probabilities[0], 4),
+            "modest_modern_fusion": round(probabilities[1], 4),
+            "y2k_revival": round(probabilities[2], 4)
         }
     }
