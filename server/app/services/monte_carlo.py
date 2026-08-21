@@ -4,7 +4,9 @@ from app.core.config import settings
 def optimize_price(base_price: float, forecast: dict) -> dict:
     np.random.seed(settings.MONTE_CARLO_SEED)
     
-    candidates = np.linspace(0.5 * base_price, 1.5 * base_price, 11)
+    min_margin = 0.05
+    max_margin = 0.50
+    candidates = np.linspace((1.0 + min_margin) * base_price, (1.0 + max_margin) * base_price, 11)
     
     baseline = {
         "rising": 0.65,
