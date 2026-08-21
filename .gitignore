@@ -14,7 +14,6 @@ skills-lock.json
 dist
 dist-ssr
 *.local
-.venv
 .docs
 
 # Editor directories and files
