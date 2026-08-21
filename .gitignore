@@ -31,4 +31,3 @@ dist-ssr
 
 # Data and Models
 server/data/raw/
-server/data/models/*.pt
