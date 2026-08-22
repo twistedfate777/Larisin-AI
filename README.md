@@ -1,6 +1,6 @@
 # Larisin AI - Dynamic Pricing Assistant
 
-Larisin AI adalah *engine* penentuan harga dinamis (Dynamic Pricing) dan pembuat *caption* otomatis untuk *fashion thrifting* berbasis AI. Proyek ini memadukan 3 lapis arsitektur cerdas:
+Larisin AI adalah *engine* penentuan harga dinamis (Dynamic Pricing) dan pembuat *caption* otomatis untuk platform **E-Commerce Fashion** berbasis AI. Proyek ini memadukan 3 lapis arsitektur cerdas:
 1. **L1 (Computer Vision):** MobileNetV2 mendeteksi *archetype* tren (Y2K, Modest-Modern, Generic).
 2. **L2 (Probabilistic Math):** Hidden Markov Model (HMM) & Monte Carlo Simulation untuk menentukan harga jual paling optimal berdasarkan probabilitas tren.
 3. **L3 (LLM Advisor):** Integrasi Groq (120b/27b) untuk menyusun rasionalisasi harga dan *draft caption* sosial media.
@@ -30,17 +30,14 @@ docker compose up --build
 ```
 Tunggu hingga proses selesai dan log terminal menampilkan *Uvicorn running*. (Catatan: Proses pertama kali akan mengunduh *image* Python dan menginstal dependensi).
 
-### 3. Cara Pengujian (Swagger UI)
-Kami telah menyediakan antarmuka interaktif:
+### 3. Cara Pengujian (React Frontend UI)
+Kami telah menyediakan antarmuka pengguna interaktif (React/Vite) yang otomatis menyala bersamaan dengan backend.
 
-1. Buka browser dan akses: **http://localhost:8000/docs**
-2. Buka tab rute `POST /api/v1/price-recommendation`.
-3. Klik tombol **Try it out** di sebelah kanan atas rute tersebut.
-4. Isi form pengujian:
-   - **image**: Pilih file foto baju (JPG/PNG) dari komputer Anda.
-   - **base_price**: Masukkan harga modal (contoh: `100000`).
-   - **stock_entry_date**: Masukkan tanggal (contoh: `2026-07-20`).
-5. Klik **Execute**.
+1. Buka browser dan akses: **http://localhost:5173**
+2. Anda akan melihat layar utama aplikasi Larisin AI.
+3. Cukup ikuti instruksi di layar: unggah foto, masukkan modal, dan masukkan tanggal.
+4. Klik tombol "Submit" atau "Get Recommendation".
+5. (*Opsional*) Jika Anda ingin melihat dokumentasi API mentah (Swagger UI), Anda tetap bisa mengaksesnya di **http://localhost:8000/docs**.
 
 Scroll ke bawah untuk melihat *Response JSON* yang berisi klasifikasi tren, perhitungan margin Monte Carlo, dan *draft caption* dari LLM!
 
