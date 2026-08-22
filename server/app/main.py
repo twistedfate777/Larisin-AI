@@ -9,6 +9,13 @@ from hmmlearn import hmm
 from app.core.config import settings
 from app.services.cnn_classifier import build_cnn_model
 from app.api.v1 import health, price_recommendation
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()]
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
