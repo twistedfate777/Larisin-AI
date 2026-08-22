@@ -3,6 +3,7 @@ import json
 import torch
 import numpy as np
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from hmmlearn import hmm
 from app.core.config import settings
@@ -52,6 +53,14 @@ async def lifespan(app: FastAPI):
         setattr(app.state, state_key, None)
 
 app = FastAPI(title="Larisin AI", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(price_recommendation.router, prefix="/api/v1", tags=["Pricing"])
