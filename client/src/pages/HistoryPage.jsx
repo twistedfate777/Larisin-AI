@@ -88,14 +88,18 @@ export default function HistoryPage() {
             </div>
             {img.result && (
               <div className="px-3.5 py-3 border-t border-border">
-                <p className="text-sm font-semibold text-text-primary">
-                  {img.result.split('\n\n')[0]}
-                </p>
-                {img.result.split('\n\n').slice(1).map((p, j) => (
-                  <p key={j} className="mt-1 text-xs text-text-secondary leading-relaxed">
-                    {p}
-                  </p>
-                ))}
+                {typeof img.result === 'object' ? (
+                  <>
+                    <p className="text-sm font-semibold text-text-primary">
+                      {img.result.archetype_classification?.label}
+                    </p>
+                    <p className="mt-1 text-xs text-text-secondary">
+                      Rp {Math.round(img.result.pricing?.recommended_price || 0).toLocaleString('id-ID')}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-text-secondary leading-relaxed">{img.result}</p>
+                )}
               </div>
             )}
             <div className="px-3.5 py-3 border-t border-border">

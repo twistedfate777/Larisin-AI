@@ -1,16 +1,18 @@
 import { useState, useRef, useCallback } from 'react'
 import { UploadSimple, X, CheckCircle, Warning, SpinnerGap, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { saveImage } from '../utils/storage'
+import { submitImage } from '../utils/api'
 
 const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
-
-const MOCK_RESULT =
-  'Best price...\n\nBased on our analysis, the estimated price for this item is Rp 150.000 – Rp 200.000. This considers current market trends and comparable listings in your area.'
 
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+function formatCurrency(value) {
+  return 'Rp ' + Math.round(value).toLocaleString('id-ID')
 }
 
 export default function UploadPage() {
@@ -20,6 +22,8 @@ export default function UploadPage() {
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
   const [dragOver, setDragOver] = useState(false)
+  const [basePrice, setBasePrice] = useState('')
+  const [stockDate, setStockDate] = useState('')
   const inputRef = useRef(null)
 
   const clearError = useCallback(() => {
@@ -88,18 +92,38 @@ export default function UploadPage() {
     setPreview(null)
     setFile(null)
     setResult(null)
+    setBasePrice('')
+    setStockDate('')
     setState('idle')
   }, [])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!preview || !file) return
+
+    const price = parseFloat(basePrice)
+    if (!basePrice || isNaN(price) || price <= 0) {
+      setError('Please enter a valid base price.')
+      clearError()
+      return
+    }
+    if (!stockDate) {
+      setError('Please enter the stock entry date.')
+      clearError()
+      return
+    }
+
     setState('generating')
-    setTimeout(() => {
-      saveImage(preview, file, MOCK_RESULT)
-      setResult(MOCK_RESULT)
+    try {
+      const data = await submitImage(file, price, stockDate)
+      saveImage(preview, file, data)
+      setResult(data)
       setState('result')
-    }, 2500)
-  }, [preview, file])
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+      clearError()
+      setState('preview')
+    }
+  }, [preview, file, basePrice, stockDate, clearError])
 
   const showPreviewCard = state === 'preview' || state === 'generating' || state === 'result'
 
@@ -195,6 +219,39 @@ export default function UploadPage() {
               </div>
             </div>
 
+            {/* Form fields — only in preview state */}
+            {state === 'preview' && (
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="basePrice" className="block text-xs font-medium text-text-secondary mb-1.5">
+                    Base Price (Rp)
+                  </label>
+                  <input
+                    id="basePrice"
+                    type="number"
+                    min="0"
+                    step="1000"
+                    placeholder="150000"
+                    value={basePrice}
+                    onChange={(e) => setBasePrice(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-surface-overlay px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all duration-200"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="stockDate" className="block text-xs font-medium text-text-secondary mb-1.5">
+                    Stock Entry Date
+                  </label>
+                  <input
+                    id="stockDate"
+                    type="date"
+                    value={stockDate}
+                    onChange={(e) => setStockDate(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-surface-overlay px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all duration-200 [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Submit button — only in preview state */}
             {state === 'preview' && (
               <button
@@ -210,26 +267,63 @@ export default function UploadPage() {
             {state === 'generating' && (
               <div className="mt-4 flex items-center justify-center gap-3 rounded-xl border border-border bg-surface-raised px-6 py-4 animate-fade-in">
                 <SpinnerGap weight="bold" size={20} className="text-accent animate-spin" />
-                <span className="text-sm font-medium text-text-secondary">Generating...</span>
+                <span className="text-sm font-medium text-text-secondary">Analyzing...</span>
               </div>
             )}
 
             {/* Result card */}
             {state === 'result' && result && (
-              <div className="mt-4 animate-fade-in">
+              <div className="mt-4 space-y-3 animate-fade-in">
+                {/* Archetype */}
                 <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
-                  <h3 className="text-base font-semibold text-text-primary">
-                    {result.split('\n\n')[0]}
-                  </h3>
-                  {result.split('\n\n').slice(1).map((p, i) => (
-                    <p key={i} className="mt-2 text-sm text-text-secondary leading-relaxed">
-                      {p}
-                    </p>
-                  ))}
+                  <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">Style Archetype</p>
+                  <p className="text-lg font-semibold text-text-primary">
+                    {result.archetype_classification?.label}
+                  </p>
                 </div>
+
+                {/* Pricing */}
+                <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
+                  <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Recommended Price</p>
+                  <p className="text-2xl font-bold text-accent">
+                    {formatCurrency(result.pricing?.recommended_price)}
+                  </p>
+                  <p className="text-sm text-text-secondary mt-1">
+                    Expected value: {formatCurrency(result.pricing?.expected_value)}
+                  </p>
+                </div>
+
+                {/* Trend */}
+                {result.trend_phase && (
+                  <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
+                    <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">Trend Phase</p>
+                    <p className="text-base font-semibold text-text-primary">
+                      {result.trend_phase.current_state}
+                    </p>
+                  </div>
+                )}
+
+                {/* Advisor */}
+                {result.advisor && (
+                  <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
+                    <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">AI Advisor</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">
+                      {result.advisor.explanation}
+                    </p>
+                    {result.advisor.listing_caption_draft && (
+                      <>
+                        <p className="text-xs font-medium text-text-muted uppercase tracking-wide mt-4 mb-1">Listing Caption Draft</p>
+                        <p className="text-sm text-text-primary leading-relaxed italic">
+                          "{result.advisor.listing_caption_draft}"
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 <button
                   onClick={handleDiscard}
-                  className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-surface-raised border border-border px-6 py-3 text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface-overlay hover:text-text-primary active:scale-[0.98] cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-surface-raised border border-border px-6 py-3 text-sm font-semibold text-text-secondary transition-all duration-200 hover:bg-surface-overlay hover:text-text-primary active:scale-[0.98] cursor-pointer"
                 >
                   <ArrowCounterClockwise weight="bold" size={16} />
                   Upload another
@@ -242,4 +336,3 @@ export default function UploadPage() {
     </div>
   )
 }
-
