@@ -19,7 +19,7 @@ def get_target_attribute_ids(attributes, keywords):
             target_ids.add(attr['id'])
     return target_ids
 
-def filter_dataset(json_path, output_root, max_per_class=25):
+def filter_dataset(json_path, output_root, max_per_class=100):
     with open(json_path, 'r') as f:
         data = json.load(f)
         
