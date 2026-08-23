@@ -10,6 +10,38 @@ client = OpenAI(
     api_key=settings.GROQ_API_KEY,
 )
 
+import base64
+
+def validate_clothing_image(image_bytes: bytes) -> bool:
+    base64_image = base64.b64encode(image_bytes).decode('utf-8')
+    prompt = "Apakah gambar ini secara spesifik memuat atau menampilkan pakaian/busana/fashion (bukan benda mati lain, bukan teks/lowongan kerja)? Jawab HANYA dengan satu kata: YES atau NO."
+    
+    try:
+        response = client.chat.completions.create(
+            model="qwen/qwen3.6-27b",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            temperature=0.1,
+            max_tokens=10
+        )
+        answer = response.choices[0].message.content.strip().upper()
+        return "YES" in answer
+    except Exception as e:
+        logger.error(f"L0 Vision Validation Failed: {e}. Bypassing filter.")
+        return True
+
 def build_advisor_prompt(context: dict) -> str:
     prompt = (
         "Anda adalah AI asisten untuk penjual fesyen di Indonesia.\n"

@@ -28,6 +28,13 @@ async def get_price_recommendation(
         logger.error("CNN Model is not available in app state.")
         raise HTTPException(status_code=503, detail="CNN Model is not available.")
         
+    logger.info("L0: Validating image content via Groq/Qwen Vision...")
+    is_clothing = llm_advisor.validate_clothing_image(file_bytes)
+    if not is_clothing:
+        logger.warning("L0: Image rejected. Not recognized as clothing.")
+        raise HTTPException(status_code=400, detail="Sistem AI kami mendeteksi bahwa gambar yang Anda unggah BUKAN pakaian/fashion (atau tidak terdeteksi). Silakan unggah foto baju yang valid.")
+    logger.info("L0: Image validated as clothing. Proceeding to CNN...")
+    
     logger.info("L1: Starting CNN Image Classification...")
     classification = cnn_classifier.classify_image(file_bytes, cnn_model)
     archetype_label = classification["label"]
