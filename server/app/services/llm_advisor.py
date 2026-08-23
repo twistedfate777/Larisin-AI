@@ -14,8 +14,18 @@ import base64
 
 def validate_clothing_image(image_bytes: bytes) -> bool:
     base64_image = base64.b64encode(image_bytes).decode('utf-8')
-    prompt = "Apakah gambar ini secara spesifik memuat atau menampilkan pakaian/busana/fashion (bukan benda mati lain, bukan teks/lowongan kerja)? Jawab HANYA dengan satu kata: YES atau NO."
+    prompt = (
+        "Kategorikan objek UTAMA yang ada di dalam gambar ini ke dalam salah satu kategori berikut:\n"
+        "1. CLOTHING (Baju, celana, jaket, gaun, pakaian di hanger, pakaian di manekin)\n"
+        "2. VEHICLE (Mobil, motor, sepeda)\n"
+        "3. DOCUMENT (Teks tulisan, screenshot lowongan kerja, dokumen)\n"
+        "4. ANIMAL (Kucing, anjing, burung)\n"
+        "5. OTHER (Benda mati lainnya seperti gelas, meja, pemandangan)\n\n"
+        "Jawab HANYA dengan SATU KATA nama kategorinya (CLOTHING, VEHICLE, DOCUMENT, ANIMAL, atau OTHER)."
+    )
     
+    import re
+        
     try:
         response = client.chat.completions.create(
             model="qwen/qwen3.6-27b",
@@ -34,10 +44,11 @@ def validate_clothing_image(image_bytes: bytes) -> bool:
                 }
             ],
             temperature=0.1,
-            max_tokens=10
+            max_tokens=500
         )
-        answer = response.choices[0].message.content.strip().upper()
-        return "YES" in answer
+        raw_answer = response.choices[0].message.content.strip().upper()
+        clean_answer = re.sub(r'<THINK>.*?</THINK>', '', raw_answer, flags=re.DOTALL)
+        return "CLOTHING" in clean_answer
     except Exception as e:
         logger.error(f"L0 Vision Validation Failed: {e}. Bypassing filter.")
         return True
