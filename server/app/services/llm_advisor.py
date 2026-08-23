@@ -11,9 +11,23 @@ client = OpenAI(
 )
 
 import base64
+import io
+from PIL import Image
 
 def validate_clothing_image(image_bytes: bytes) -> bool:
-    base64_image = base64.b64encode(image_bytes).decode('utf-8')
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        img.thumbnail((512, 512))
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=85)
+        compressed_bytes = buffer.getvalue()
+    except Exception as e:
+        logger.error(f"Gagal memproses gambar dengan PIL: {e}")
+        compressed_bytes = image_bytes
+
+    base64_image = base64.b64encode(compressed_bytes).decode('utf-8')
     prompt = (
         "Kategorikan objek UTAMA yang ada di dalam gambar ini ke dalam salah satu kategori berikut:\n"
         "1. CLOTHING (Baju, celana, jaket, gaun, pakaian di hanger, pakaian di manekin)\n"
