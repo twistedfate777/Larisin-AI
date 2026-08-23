@@ -1,9 +1,10 @@
 # Larisin AI - Dynamic Pricing Assistant
 
-Larisin AI adalah *engine* penentuan harga dinamis (Dynamic Pricing) dan pembuat *caption* otomatis untuk platform **E-Commerce Fashion** berbasis AI. Proyek ini memadukan 3 lapis arsitektur cerdas:
-1. **L1 (Computer Vision):** MobileNetV2 mendeteksi *archetype* tren (Y2K, Modest-Modern, Generic).
-2. **L2 (Probabilistic Math):** Hidden Markov Model (HMM) & Monte Carlo Simulation untuk menentukan harga jual paling optimal berdasarkan probabilitas tren.
-3. **L3 (LLM Advisor):** Integrasi Groq (120b/27b) untuk menyusun rasionalisasi harga dan *draft caption* sosial media.
+Larisin AI adalah *engine* penentuan harga dinamis (Dynamic Pricing) dan pembuat *caption* otomatis untuk platform **E-Commerce Fashion** berbasis AI. Proyek ini memadukan 4 lapis arsitektur cerdas:
+1. **L0 (Vision Pre-Filter):** Qwen Vision LLM bertindak sebagai *gatekeeper* pintar untuk memblokir gambar non-pakaian (benda mati/teks) sebelum masuk ke *pipeline* utama.
+2. **L1 (Computer Vision):** MobileNetV2 mendeteksi *archetype* tren (Y2K, Modest-Modern, Generic).
+3. **L2 (Probabilistic Math):** Hidden Markov Model (HMM) & Monte Carlo Simulation untuk menentukan harga jual paling optimal berdasarkan probabilitas tren.
+4. **L3 (LLM Advisor):** Integrasi Groq (120b/27b) untuk menyusun rasionalisasi harga dan *draft caption* sosial media.
 
 ---
 
