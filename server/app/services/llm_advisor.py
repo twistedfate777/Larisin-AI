@@ -29,12 +29,13 @@ def validate_clothing_image(image_bytes: bytes) -> bool:
 
     base64_image = base64.b64encode(compressed_bytes).decode('utf-8')
     prompt = (
-        "Kategorikan objek UTAMA yang ada di dalam gambar ini ke dalam salah satu kategori berikut:\n"
-        "1. CLOTHING (Baju, celana, jaket, gaun, pakaian di hanger, pakaian di manekin)\n"
+        "Kategorikan wujud FISIK dari objek UTAMA yang ada di dalam gambar ini ke dalam salah satu kategori berikut:\n"
+        "1. CLOTHING (Wujud fisik sepotong baju, celana, jaket, gaun, pakaian di hanger, pakaian di manekin)\n"
         "2. VEHICLE (Mobil, motor, sepeda)\n"
-        "3. DOCUMENT (Teks tulisan, screenshot lowongan kerja, dokumen)\n"
+        "3. DOCUMENT (Teks tulisan, screenshot aplikasi, diagram, bagan, flowchart, grafik, logo, dokumen)\n"
         "4. ANIMAL (Kucing, anjing, burung)\n"
         "5. OTHER (Benda mati lainnya seperti gelas, meja, pemandangan)\n\n"
+        "ATURAN SUPER KETAT: Jika gambar tersebut adalah sebuah BAGAN, DIAGRAM, GRAFIK, atau TEKS (seperti diagram alur yang Anda lihat sekarang), Anda WAJIB menjawab DOCUMENT, tidak peduli apakah teks di dalam diagram tersebut membahas tentang fashion, baju, atau Y2K.\n\n"
         "Jawab HANYA dengan SATU KATA nama kategorinya (CLOTHING, VEHICLE, DOCUMENT, ANIMAL, atau OTHER)."
     )
     
@@ -61,8 +62,22 @@ def validate_clothing_image(image_bytes: bytes) -> bool:
             max_tokens=500
         )
         raw_answer = response.choices[0].message.content.strip().upper()
+        logger.info(f"L0 Vision Raw Output: '{raw_answer}'")
         clean_answer = re.sub(r'<THINK>.*?</THINK>', '', raw_answer, flags=re.DOTALL)
-        return "CLOTHING" in clean_answer
+        
+        categories = ["CLOTHING", "VEHICLE", "DOCUMENT", "ANIMAL", "OTHER"]
+        final_category = None
+        last_index = -1
+        
+        for cat in categories:
+            idx = clean_answer.rfind(cat)
+            if idx > last_index:
+                last_index = idx
+                final_category = cat
+                
+        logger.info(f"L0 Vision Final Category Evaluated: {final_category}")
+        return final_category == "CLOTHING"
+        
     except Exception as e:
         logger.error(f"L0 Vision Validation Failed: {e}. Bypassing filter.")
         return True
