@@ -33,8 +33,13 @@ async def lifespan(app: FastAPI):
     app.state.cnn_model = cnn_model
 
     archetypes = {
-        "modest_modern": "hmm_modest_modern",
-        "heritage_eco": "hmm_heritage_eco",
+        "casual_everyday": "hmm_casual_everyday",
+        "formal_office": "hmm_formal_office",
+        "modest_modern_fusion": "hmm_modest_modern_fusion",
+        "outerwear_heavy": "hmm_outerwear_heavy",
+        "smart_casual_shirts": "hmm_smart_casual_shirts",
+        "sportswear_swimwear": "hmm_sportswear_swimwear",
+        "streetwear_hype": "hmm_streetwear_hype",
         "y2k_revival": "hmm_y2k_revival"
     }
     

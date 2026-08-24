@@ -24,42 +24,76 @@ def filter_dataset(json_path, output_root, max_per_class=100):
         data = json.load(f)
         
     attributes = data.get('attributes', [])
-    annotations = data.get('annotations', [])
     images = data.get('images', [])
+    annotations = data.get('annotations', [])
     
-    class_keywords = {
-        'modest_modern_fusion': ['loose', 'maxi', 'layer', 'long', 'oversize'],
-        'y2k_revival': ['crop', 'low-rise', 'print', 'metallic', 'mini', 'sleeveless'],
-        'generic': ['solid', 'regular', 'basic', 'plain']
-    }
+    modest_attr_keywords = ['long', 'maxi', 'midi']
+    modest_attr_ids = get_target_attribute_ids(attributes, modest_attr_keywords)
     
-    class_attr_ids = {}
-    for cls_name, keywords in class_keywords.items():
-        class_attr_ids[cls_name] = get_target_attribute_ids(attributes, keywords)
+    streetwear_attr_keywords = ['print', 'graphic', 'hood', 'loose', 'pocket']
+    streetwear_attr_ids = get_target_attribute_ids(attributes, streetwear_attr_keywords)
+    
+    classes = [
+        "casual_everyday",
+        "formal_office",
+        "modest_modern_fusion",
+        "outerwear_heavy",
+        "smart_casual_shirts",
+        "sportswear_swimwear",
+        "streetwear_hype",
+        "y2k_revival"
+    ]
+    
+    for cls_name in classes:
         os.makedirs(os.path.join(output_root, cls_name), exist_ok=True)
         
     img_to_url = {img['id']: img.get('original_url') for img in images if img.get('original_url')}
-    
-    class_counts = {cls: 0 for cls in class_keywords.keys()}
+    class_counts = {cls: 0 for cls in classes}
     
     for ann in annotations:
         if all(count >= max_per_class for count in class_counts.values()):
             break
             
         img_id = ann.get('image_id')
+        cat_id = ann.get('category_id')
         attr_ids = set(ann.get('attribute_ids', []))
         
-        if not img_id or img_id not in img_to_url or not attr_ids:
+        if not img_id or img_id not in img_to_url or not cat_id:
             continue
             
         assigned_class = None
-        if attr_ids & class_attr_ids['y2k_revival']:
+        
+        if cat_id in [13, 14]:
             assigned_class = 'y2k_revival'
-        elif attr_ids & class_attr_ids['modest_modern_fusion']:
-            assigned_class = 'modest_modern_fusion'
-        elif attr_ids & class_attr_ids['generic']:
-            assigned_class = 'generic'
-            
+        elif cat_id in [11, 21, 26]:
+            assigned_class = 'sportswear_swimwear'
+        elif cat_id in [4, 5]:
+            assigned_class = 'formal_office'
+        elif cat_id == 18:
+            if attr_ids & streetwear_attr_ids:
+                assigned_class = 'streetwear_hype'
+            else:
+                assigned_class = 'formal_office'
+        elif cat_id in [6, 7, 8]:
+            assigned_class = 'outerwear_heavy'
+        elif cat_id == 3:
+            if attr_ids & streetwear_attr_ids:
+                assigned_class = 'streetwear_hype'
+            else:
+                assigned_class = 'outerwear_heavy'
+        elif cat_id in [9, 10]:
+            if attr_ids & modest_attr_ids:
+                assigned_class = 'modest_modern_fusion'
+            else:
+                assigned_class = 'casual_everyday'
+        elif cat_id in [1, 12]:
+            assigned_class = 'smart_casual_shirts'
+        elif cat_id in [2, 20]:
+            if attr_ids & streetwear_attr_ids:
+                assigned_class = 'streetwear_hype'
+            else:
+                assigned_class = 'casual_everyday'
+                
         if not assigned_class or class_counts[assigned_class] >= max_per_class:
             continue
             
@@ -84,8 +118,8 @@ def filter_dataset(json_path, output_root, max_per_class=100):
 
 if __name__ == "__main__":
     DATA_DIR = "data/raw"
-    JSON_URL = "https://s3.amazonaws.com/ifashionist-dataset/annotations/attributes_val2020.json"
-    JSON_PATH = os.path.join(DATA_DIR, "attributes_val2020.json")
+    JSON_URL = "https://s3.amazonaws.com/ifashionist-dataset/annotations/instances_attributes_val2020.json"
+    JSON_PATH = os.path.join(DATA_DIR, "instances_attributes_val2020.json")
     OUTPUT_DIR = os.path.join(DATA_DIR, "fashionpedia_subset")
     
     os.makedirs(DATA_DIR, exist_ok=True)

@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from app.core.config import settings
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 3
+NUM_CLASSES = 8
 
 def build_model():
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
@@ -15,9 +15,8 @@ def build_model():
     for param in model.parameters():
         param.requires_grad = False
         
-    num_ftrs = model.classifier[1].in_features
     model.classifier[1] = nn.Sequential(
-        nn.Linear(num_ftrs, 512),
+        nn.Linear(model.classifier[1].in_features, 512),
         nn.ReLU(),
         nn.Dropout(0.2),
         nn.Linear(512, NUM_CLASSES)

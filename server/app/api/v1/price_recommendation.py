@@ -44,54 +44,36 @@ async def get_price_recommendation(
     forecast_probs = {"rising": 0.33, "peak": 0.34, "declining": 0.33}
     
     archetype_keys_map = {
-        "Modest-Modern Fusion": "modest_modern",
-        "Heritage Eco": "heritage_eco",
+        "Casual Everyday": "casual_everyday",
+        "Formal Office": "formal_office",
+        "Modest-Modern Fusion": "modest_modern_fusion",
+        "Outerwear Heavy": "outerwear_heavy",
+        "Smart Casual Shirts": "smart_casual_shirts",
+        "Sportswear & Swimwear": "sportswear_swimwear",
+        "Streetwear Hype": "streetwear_hype",
         "Y2K Retro Revival": "y2k_revival"
     }
     
-    if archetype_label != "Generic":
-        archetype_key = archetype_keys_map[archetype_label]
-        state_key = f"hmm_{archetype_key}"
-        hmm_model = getattr(request.app.state, state_key, None)
+    archetype_key = archetype_keys_map[archetype_label]
+    state_key = f"hmm_{archetype_key}"
+    hmm_model = getattr(request.app.state, state_key, None)
+    
+    if not hmm_model:
+        logger.error(f"HMM Model for {archetype_label} is not available.")
+        raise HTTPException(status_code=503, detail=f"HMM Model for {archetype_label} is not available.")
         
-        if not hmm_model:
-            logger.error(f"HMM Model for {archetype_label} is not available.")
-            raise HTTPException(status_code=503, detail=f"HMM Model for {archetype_label} is not available.")
-            
-        logger.info(f"L2a: Running HMM Trend Forecasting for '{archetype_label}'...")
-        dummy_recent_observations = [1, 2, 2, 1]
-        
-        decoded = hmm_engine.decode_trend(hmm_model, dummy_recent_observations)
-        forecast = hmm_engine.forecast_trend(decoded["current_state_prob"], decoded["transmat"], 4)
-        
-        trend_phase = {
-            "current_state": decoded["current_state"],
-            "forecast_4_weeks": forecast
-        }
-        forecast_probs = forecast
-        logger.info(f"L2a: Trend forecasted as '{decoded['current_state']}'")
-    else:
-        logger.info("L2a: Class is Generic, bypassing HMM and using heuristic fallback...")
-        try:
-            entry_date = datetime.strptime(stock_entry_date, "%Y-%m-%d")
-            days_in_stock = (datetime.now() - entry_date).days
-            if days_in_stock < 30:
-                current_state = "Rising"
-                forecast_probs = {"rising": 0.60, "peak": 0.30, "declining": 0.10}
-            elif days_in_stock < 90:
-                current_state = "Peak"
-                forecast_probs = {"rising": 0.10, "peak": 0.60, "declining": 0.30}
-            else:
-                current_state = "Declining"
-                forecast_probs = {"rising": 0.05, "peak": 0.15, "declining": 0.80}
-        except ValueError:
-            current_state = "Unknown"
-            
-        trend_phase = {
-            "current_state": current_state,
-            "forecast_4_weeks": forecast_probs
-        }
-        logger.info(f"L2a: Heuristic trend evaluated as '{current_state}'")
+    logger.info(f"L2a: Running HMM Trend Forecasting for '{archetype_label}'...")
+    dummy_recent_observations = [1, 2, 2, 1]
+    
+    decoded = hmm_engine.decode_trend(hmm_model, dummy_recent_observations)
+    forecast = hmm_engine.forecast_trend(decoded["current_state_prob"], decoded["transmat"], 4)
+    
+    trend_phase = {
+        "current_state": decoded["current_state"],
+        "forecast_4_weeks": forecast
+    }
+    forecast_probs = forecast
+    logger.info(f"L2a: Trend forecasted as '{decoded['current_state']}'")
         
     logger.info("L2b: Running Monte Carlo Price Optimization...")
     pricing = monte_carlo.optimize_price(base_price, forecast_probs)

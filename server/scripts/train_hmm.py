@@ -20,7 +20,16 @@ def bin_interest(value):
 def train_and_save_hmm():
     os.makedirs(settings.HMM_MODELS_DIR, exist_ok=True)
     
-    archetypes = ["modest_modern", "heritage_eco", "y2k_revival"]
+    archetypes = [
+        "casual_everyday",
+        "formal_office",
+        "modest_modern_fusion",
+        "outerwear_heavy",
+        "smart_casual_shirts",
+        "sportswear_swimwear",
+        "streetwear_hype",
+        "y2k_revival"
+    ]
     
     for archetype in archetypes:
         csv_path = os.path.join(settings.TRENDS_CACHE_DIR, f"{archetype}_trends.csv")

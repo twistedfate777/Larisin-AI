@@ -5,14 +5,22 @@ from torchvision import models
 from PIL import Image
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 3
-CLASS_NAMES = ["generic", "modest_modern_fusion", "y2k_revival"]
+NUM_CLASSES = 8
+CLASS_NAMES = [
+    "casual_everyday",
+    "formal_office",
+    "modest_modern_fusion",
+    "outerwear_heavy",
+    "smart_casual_shirts",
+    "sportswear_swimwear",
+    "streetwear_hype",
+    "y2k_revival"
+]
 
 def build_cnn_model():
     model = models.mobilenet_v2(weights=None)
-    num_ftrs = model.classifier[1].in_features
     model.classifier[1] = nn.Sequential(
-        nn.Linear(num_ftrs, 512),
+        nn.Linear(model.classifier[1].in_features, 512),
         nn.ReLU(),
         nn.Dropout(0.2),
         nn.Linear(512, NUM_CLASSES)
@@ -34,16 +42,19 @@ def classify_image(image_bytes: bytes, model: nn.Module) -> dict:
     predicted_label = CLASS_NAMES[pred_idx]
     
     label_mapping = {
-        "generic": "Generic",
+        "casual_everyday": "Casual Everyday",
+        "formal_office": "Formal Office",
         "modest_modern_fusion": "Modest-Modern Fusion",
+        "outerwear_heavy": "Outerwear Heavy",
+        "smart_casual_shirts": "Smart Casual Shirts",
+        "sportswear_swimwear": "Sportswear & Swimwear",
+        "streetwear_hype": "Streetwear Hype",
         "y2k_revival": "Y2K Retro Revival"
     }
     
+    probs_dict = {name: round(probabilities[i], 4) for i, name in enumerate(CLASS_NAMES)}
+    
     return {
         "label": label_mapping[predicted_label],
-        "probabilities": {
-            "generic": round(probabilities[0], 4),
-            "modest_modern_fusion": round(probabilities[1], 4),
-            "y2k_revival": round(probabilities[2], 4)
-        }
+        "probabilities": probs_dict
     }
