@@ -25,8 +25,6 @@ def train_and_save_hmm():
         "formal_office",
         "modest_modern_fusion",
         "outerwear_heavy",
-        "smart_casual_shirts",
-        "sportswear_swimwear",
         "streetwear_hype",
         "y2k_revival"
     ]

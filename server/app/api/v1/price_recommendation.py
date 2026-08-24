@@ -48,8 +48,6 @@ async def get_price_recommendation(
         "Formal Office": "formal_office",
         "Modest-Modern Fusion": "modest_modern_fusion",
         "Outerwear Heavy": "outerwear_heavy",
-        "Smart Casual Shirts": "smart_casual_shirts",
-        "Sportswear & Swimwear": "sportswear_swimwear",
         "Streetwear Hype": "streetwear_hype",
         "Y2K Retro Revival": "y2k_revival"
     }

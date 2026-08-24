@@ -37,8 +37,6 @@ async def lifespan(app: FastAPI):
         "formal_office": "hmm_formal_office",
         "modest_modern_fusion": "hmm_modest_modern_fusion",
         "outerwear_heavy": "hmm_outerwear_heavy",
-        "smart_casual_shirts": "hmm_smart_casual_shirts",
-        "sportswear_swimwear": "hmm_sportswear_swimwear",
         "streetwear_hype": "hmm_streetwear_hype",
         "y2k_revival": "hmm_y2k_revival"
     }

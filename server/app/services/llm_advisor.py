@@ -62,7 +62,6 @@ def validate_clothing_image(image_bytes: bytes) -> bool:
             max_tokens=500
         )
         raw_answer = response.choices[0].message.content.strip().upper()
-        logger.info(f"L0 Vision Raw Output: '{raw_answer}'")
         clean_answer = re.sub(r'<THINK>.*?</THINK>', '', raw_answer, flags=re.DOTALL)
         
         categories = ["CLOTHING", "VEHICLE", "DOCUMENT", "ANIMAL", "OTHER"]

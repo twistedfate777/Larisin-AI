@@ -5,14 +5,12 @@ from torchvision import models
 from PIL import Image
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 8
+NUM_CLASSES = 6
 CLASS_NAMES = [
     "casual_everyday",
     "formal_office",
     "modest_modern_fusion",
     "outerwear_heavy",
-    "smart_casual_shirts",
-    "sportswear_swimwear",
     "streetwear_hype",
     "y2k_revival"
 ]
@@ -46,8 +44,6 @@ def classify_image(image_bytes: bytes, model: nn.Module) -> dict:
         "formal_office": "Formal Office",
         "modest_modern_fusion": "Modest-Modern Fusion",
         "outerwear_heavy": "Outerwear Heavy",
-        "smart_casual_shirts": "Smart Casual Shirts",
-        "sportswear_swimwear": "Sportswear & Swimwear",
         "streetwear_hype": "Streetwear Hype",
         "y2k_revival": "Y2K Retro Revival"
     }

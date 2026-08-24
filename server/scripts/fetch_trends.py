@@ -17,8 +17,6 @@ def fetch_and_save_trends():
         "formal_office": "Kemeja Kantor",
         "modest_modern_fusion": "Gamis Modern",
         "outerwear_heavy": "Jaket Tebal",
-        "smart_casual_shirts": "Kemeja Polo",
-        "sportswear_swimwear": "Baju Olahraga",
         "streetwear_hype": "Baju Oversize",
         "y2k_revival": "Baju Y2K"
     }

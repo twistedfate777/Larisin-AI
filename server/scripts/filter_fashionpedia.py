@@ -1,7 +1,6 @@
 import os
 import json
 import requests
-import shutil
 
 def download_file(url, local_path):
     if not os.path.exists(local_path):
@@ -27,19 +26,29 @@ def filter_dataset(json_path, output_root, max_per_class=100):
     images = data.get('images', [])
     annotations = data.get('annotations', [])
     
-    modest_attr_keywords = ['long', 'maxi', 'midi']
-    modest_attr_ids = get_target_attribute_ids(attributes, modest_attr_keywords)
+    y2k_kw = ['crop (top)', 'crop (jacket)', 'halter (top)', 'tube (top)', 'track (jacket)', 'windbreaker']
+    streetwear_kw = ['hoodie', 'oversized', 'bomber (jacket)', 'letters, numbers']
+    formal_kw = ['blazer', 'tuxedo (jacket)']
+    outerwear_kw = ['puffer (jacket)', 'puffer (coat)', 'parka', 'shearling (coat)', 'teddy bear (coat)', 'trench (coat)', 'biker (jacket)']
     
-    streetwear_attr_keywords = ['print', 'graphic', 'hood', 'loose', 'pocket']
-    streetwear_attr_ids = get_target_attribute_ids(attributes, streetwear_attr_keywords)
+    short_kw = ['mini (length)', 'micro (length)', 'short (length)', 'above-the-knee (length)', 'above-the-hip (length)']
+    modest_kw = ['knee (length)', 'below the knee (length)', 'midi']
+    long_kw = ['maxi (length)', 'floor (length)']
+    
+    y2k_ids = get_target_attribute_ids(attributes, y2k_kw)
+    streetwear_ids = get_target_attribute_ids(attributes, streetwear_kw)
+    formal_ids = get_target_attribute_ids(attributes, formal_kw)
+    outerwear_ids = get_target_attribute_ids(attributes, outerwear_kw)
+    
+    short_ids = get_target_attribute_ids(attributes, short_kw)
+    modest_ids = get_target_attribute_ids(attributes, modest_kw)
+    long_ids = get_target_attribute_ids(attributes, long_kw)
     
     classes = [
         "casual_everyday",
         "formal_office",
         "modest_modern_fusion",
         "outerwear_heavy",
-        "smart_casual_shirts",
-        "sportswear_swimwear",
         "streetwear_hype",
         "y2k_revival"
     ]
@@ -50,58 +59,68 @@ def filter_dataset(json_path, output_root, max_per_class=100):
     img_to_url = {img['id']: img.get('original_url') for img in images if img.get('original_url')}
     class_counts = {cls: 0 for cls in classes}
     
+    valid_top_cats = [0, 1, 2, 3, 4, 5, 9, 10, 11]
+    
+    images_data = {}
     for ann in annotations:
-        if all(count >= max_per_class for count in class_counts.values()):
-            break
-            
         img_id = ann.get('image_id')
         cat_id = ann.get('category_id')
         attr_ids = set(ann.get('attribute_ids', []))
         
-        if not img_id or img_id not in img_to_url or not cat_id:
+        if not img_id or not cat_id:
             continue
             
-        assigned_class = None
+        if img_id not in images_data:
+            images_data[img_id] = {'cat_ids': set(), 'attr_ids': set()}
+            
+        images_data[img_id]['cat_ids'].add(cat_id)
+        images_data[img_id]['attr_ids'].update(attr_ids)
         
-        if cat_id in [13, 14]:
-            assigned_class = 'y2k_revival'
-        elif cat_id in [11, 21, 26]:
-            assigned_class = 'sportswear_swimwear'
-        elif cat_id in [4, 5]:
+    for img_id, data in images_data.items():
+        if all(count >= max_per_class for count in class_counts.values()):
+            break
+            
+        if img_id not in img_to_url:
+            continue
+            
+        cats = data['cat_ids']
+        attrs = data['attr_ids']
+        
+        if not any(c in valid_top_cats for c in cats):
+            continue
+            
+        is_very_open = (7 in cats) or bool(attrs & short_ids)
+        is_modest_bottom = (8 in cats) or bool(attrs & modest_ids)
+        is_heavy_bottom = (6 in cats) or (15 in cats) or bool(attrs & long_ids)
+        
+        if attrs & formal_ids:
             assigned_class = 'formal_office'
-        elif cat_id == 18:
-            if attr_ids & streetwear_attr_ids:
-                assigned_class = 'streetwear_hype'
-            else:
-                assigned_class = 'formal_office'
-        elif cat_id in [6, 7, 8]:
+            
+        elif (attrs & outerwear_ids) or ((4 in cats or 9 in cats) and 15 in cats):
             assigned_class = 'outerwear_heavy'
-        elif cat_id == 3:
-            if attr_ids & streetwear_attr_ids:
-                assigned_class = 'streetwear_hype'
-            else:
-                assigned_class = 'outerwear_heavy'
-        elif cat_id in [9, 10]:
-            if attr_ids & modest_attr_ids:
-                assigned_class = 'modest_modern_fusion'
-            else:
-                assigned_class = 'casual_everyday'
-        elif cat_id in [1, 12]:
-            assigned_class = 'smart_casual_shirts'
-        elif cat_id in [2, 20]:
-            if attr_ids & streetwear_attr_ids:
+            
+        elif (attrs & long_ids) and (10 in cats):
+            assigned_class = 'modest_modern_fusion'
+            
+        elif is_very_open:
+            if attrs & y2k_ids:
+                assigned_class = 'y2k_revival'
+            elif attrs & streetwear_ids:
                 assigned_class = 'streetwear_hype'
             else:
                 assigned_class = 'casual_everyday'
                 
+        elif attrs & streetwear_ids:
+            assigned_class = 'streetwear_hype'
+        elif attrs & y2k_ids:
+            assigned_class = 'y2k_revival'
+        else:
+            assigned_class = 'casual_everyday'
+            
         if not assigned_class or class_counts[assigned_class] >= max_per_class:
             continue
             
-        url = img_to_url[img_id]
-        ext = url.split('.')[-1]
-        if len(ext) > 4:
-            ext = 'jpg'
-            
+        ext = 'jpg'
         save_path = os.path.join(output_root, assigned_class, f"{img_id}.{ext}")
         if os.path.exists(save_path):
             continue
@@ -112,7 +131,7 @@ def filter_dataset(json_path, output_root, max_per_class=100):
                 with open(save_path, 'wb') as out_f:
                     out_f.write(resp.content)
                 class_counts[assigned_class] += 1
-                del img_to_url[img_id] 
+                del img_to_url[img_id]
         except Exception:
             pass
 

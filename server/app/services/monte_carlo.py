@@ -24,6 +24,9 @@ def optimize_price(base_price: float, forecast: dict) -> dict:
     state_names = ["rising", "peak", "declining"]
     state_probs = [forecast["rising"], forecast["peak"], forecast["declining"]]
     
+    total_prob = sum(state_probs)
+    state_probs = [p / total_prob for p in state_probs]
+    
     expected_values = []
     
     for p in candidates:

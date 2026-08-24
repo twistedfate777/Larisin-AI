@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from app.core.config import settings
 from app.core.vision import get_shared_transforms
 
-NUM_CLASSES = 8
+NUM_CLASSES = 6
 
 def build_model():
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
