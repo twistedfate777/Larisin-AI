@@ -13,10 +13,12 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 h-16 border-b border-border bg-surface/80 backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-6">
-        <NavLink to="/" className="flex items-center gap-2 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white text-sm font-bold">
-            L
-          </div>
+        <NavLink to="/" className="flex items-center gap-2.5 group">
+          <img
+            src="/Larisin%20-%20Logo.png"
+            alt="Larisin AI Logo"
+            className="h-8 w-8 object-contain rounded-md"
+          />
           <span className="text-lg font-semibold tracking-tight text-text-primary">
             Larisin AI
           </span>
