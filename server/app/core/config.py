@@ -6,10 +6,6 @@ class Settings(BaseSettings):
     GROQ_MODEL_FALLBACK: str = "qwen/qwen3.6-27b"
     GROQ_API_BASE: str = "https://api.groq.com/openai/v1"
     
-    DATABASE_URL: str
-    
-    CLOUDINARY_URL: str
-    
     CNN_MODEL_PATH: str = "data/models/cnn_archetype.pt"
     HMM_MODELS_DIR: str = "data/models/"
     TRENDS_CACHE_DIR: str = "data/trends_cache/"
